@@ -10,11 +10,11 @@ public class DatabaseConfig {
     public static DataSource createDataSource() {
         HikariConfig config = new HikariConfig();
 
-        // Configuración para H2 (base de datos en memoria para desarrollo)
-        config.setJdbcUrl("jdbc:h2:./data/electronica_db;AUTO_SERVER=TRUE");
-        config.setUsername("sa");
-        config.setPassword("");
-        config.setDriverClassName("org.h2.Driver");
+        // Configuración desde variables de entorno
+        config.setJdbcUrl(EnvConfig.getDbUrl());
+        config.setUsername(EnvConfig.getDbUsername());
+        config.setPassword(EnvConfig.getDbPassword());
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
         // Configuraciones de pool
         config.setMaximumPoolSize(10);
@@ -22,6 +22,18 @@ public class DatabaseConfig {
         config.setConnectionTimeout(30000);
         config.setIdleTimeout(600000);
         config.setMaxLifetime(1800000);
+
+        // Configuraciones adicionales para MySQL
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("useServerPrepStmts", "true");
+        config.addDataSourceProperty("useLocalSessionState", "true");
+        config.addDataSourceProperty("rewriteBatchedStatements", "true");
+        config.addDataSourceProperty("cacheResultSetMetadata", "true");
+        config.addDataSourceProperty("cacheServerConfiguration", "true");
+        config.addDataSourceProperty("elideSetAutoCommits", "true");
+        config.addDataSourceProperty("maintainTimeStats", "false");
 
         return new HikariDataSource(config);
     }
