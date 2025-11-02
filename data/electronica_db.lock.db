@@ -1,0 +1,6 @@
+#FileLock
+#Thu Oct 30 18:03:46 CST 2025
+hostName=FRANCIS
+id=19a3793cd769d76445a5530e775a52103b2a6751c0f
+method=file
+server=192.168.1.78\:9649
