@@ -1,4 +1,3 @@
-// UBICACIÓN: src/main/java/com/electronica/tarjeta/application/usecase/GetAllRegistroTarjetasUseCase.java
 package com.electronica.tarjeta.application.usecase;
 
 import com.electronica.tarjeta.application.dto.RegistroTarjetaResponseDto;
@@ -6,23 +5,20 @@ import com.electronica.tarjeta.domain.model.RegistroTarjeta;
 import com.electronica.tarjeta.domain.port.RegistroTarjetaRepositoryPort;
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
 
-public class GetAllRegistroTarjetasUseCase {
+public class GetRegistroTarjetaByIdUseCase {
     private final RegistroTarjetaRepositoryPort repository;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MMMM/yyyy");
 
-    public GetAllRegistroTarjetasUseCase(RegistroTarjetaRepositoryPort repository) {
+    public GetRegistroTarjetaByIdUseCase(RegistroTarjetaRepositoryPort repository) {
         this.repository = repository;
     }
 
-    public List<RegistroTarjetaResponseDto> execute() {
-        List<RegistroTarjeta> tarjetas = repository.findAll();
+    public RegistroTarjetaResponseDto execute(String id) {
+        RegistroTarjeta tarjeta = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Registro de tarjeta no encontrado"));
 
-        return tarjetas.stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+        return mapToResponseDto(tarjeta);
     }
 
     private RegistroTarjetaResponseDto mapToResponseDto(RegistroTarjeta tarjeta) {

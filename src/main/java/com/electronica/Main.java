@@ -147,12 +147,13 @@ public class Main {
 
             // =============================================================
             // RUTAS: REGISTRO DE TARJETAS (CRUD COMPLETO)
+            // CAMBIO IMPORTANTE: :id → {id}
             // =============================================================
             app.post("/api/tarjetas", tarjetaController::create);           // CREATE
             app.get("/api/tarjetas", tarjetaController::getAll);            // READ ALL
-            app.get("/api/tarjetas/:id", tarjetaController::getById);       // READ ONE
-            app.put("/api/tarjetas/:id", tarjetaController::update);        // UPDATE
-            app.delete("/api/tarjetas/:id", tarjetaController::delete);     // DELETE
+            app.get("/api/tarjetas/{id}", tarjetaController::getById);      // READ ONE ← CAMBIO AQUÍ
+            app.put("/api/tarjetas/{id}", tarjetaController::update);       // UPDATE ← CAMBIO AQUÍ
+            app.delete("/api/tarjetas/{id}", tarjetaController::delete);    // DELETE ← CAMBIO AQUÍ
 
             // =============================================================
             // RUTAS: PRODUCTOS (CRUD COMPLETO) - DESCOMENTAR CUANDO ESTÉ LISTO
@@ -160,10 +161,10 @@ public class Main {
             /*
             app.post("/api/productos", productoController::create);
             app.get("/api/productos", productoController::getAll);
-            app.get("/api/productos/:id", productoController::getById);
-            app.put("/api/productos/:id", productoController::update);
-            app.delete("/api/productos/:id", productoController::delete);
-            app.get("/api/productos/categoria/:categoria", productoController::getByCategoria);
+            app.get("/api/productos/{id}", productoController::getById);
+            app.put("/api/productos/{id}", productoController::update);
+            app.delete("/api/productos/{id}", productoController::delete);
+            app.get("/api/productos/categoria/{categoria}", productoController::getByCategoria);
             app.get("/api/productos/stock-bajo", productoController::getLowStock);
             */
 
@@ -173,10 +174,10 @@ public class Main {
             /*
             app.post("/api/finalizados", finalizadoController::create);
             app.get("/api/finalizados", finalizadoController::getAll);
-            app.get("/api/finalizados/:id", finalizadoController::getById);
-            app.put("/api/finalizados/:id", finalizadoController::update);
-            app.delete("/api/finalizados/:id", finalizadoController::delete);
-            app.get("/api/finalizados/tecnico/:tecnicoId", finalizadoController::getByTecnico);
+            app.get("/api/finalizados/{id}", finalizadoController::getById);
+            app.put("/api/finalizados/{id}", finalizadoController::update);
+            app.delete("/api/finalizados/{id}", finalizadoController::delete);
+            app.get("/api/finalizados/tecnico/{tecnicoId}", finalizadoController::getByTecnico);
             */
 
             // =============================================================
@@ -220,23 +221,23 @@ public class Main {
             System.out.println("    🔧 REGISTRO DE TARJETAS:");
             System.out.println("       POST   /api/tarjetas");
             System.out.println("       GET    /api/tarjetas");
-            System.out.println("       GET    /api/tarjetas/:id");
-            System.out.println("       PUT    /api/tarjetas/:id");
-            System.out.println("       DELETE /api/tarjetas/:id");
+            System.out.println("       GET    /api/tarjetas/{id}");
+            System.out.println("       PUT    /api/tarjetas/{id}");
+            System.out.println("       DELETE /api/tarjetas/{id}");
             System.out.println("");
             System.out.println("    📦 PRODUCTOS: (pendiente implementación completa)");
             System.out.println("       POST   /api/productos");
             System.out.println("       GET    /api/productos");
-            System.out.println("       GET    /api/productos/:id");
-            System.out.println("       PUT    /api/productos/:id");
-            System.out.println("       DELETE /api/productos/:id");
+            System.out.println("       GET    /api/productos/{id}");
+            System.out.println("       PUT    /api/productos/{id}");
+            System.out.println("       DELETE /api/productos/{id}");
             System.out.println("");
             System.out.println("    ✅ REGISTRO FINALIZADO: (pendiente implementación completa)");
             System.out.println("       POST   /api/finalizados");
             System.out.println("       GET    /api/finalizados");
-            System.out.println("       GET    /api/finalizados/:id");
-            System.out.println("       PUT    /api/finalizados/:id");
-            System.out.println("       DELETE /api/finalizados/:id");
+            System.out.println("       GET    /api/finalizados/{id}");
+            System.out.println("       PUT    /api/finalizados/{id}");
+            System.out.println("       DELETE /api/finalizados/{id}");
             System.out.println("");
             System.out.println("    🏥 SALUD:");
             System.out.println("       GET    /api/health");
