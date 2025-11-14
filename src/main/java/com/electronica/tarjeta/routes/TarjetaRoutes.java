@@ -7,8 +7,8 @@ import io.javalin.Javalin;
 public class TarjetaRoutes {
 
     public static void register(Javalin app, TarjetaService tarjetaService) {
-        app.before("/api/tarjetas/*", JwtConfig::validateToken);
-        
+        app.before("/api/tarjetas", JwtConfig::validateToken);
+
         app.post("/api/tarjetas", tarjetaService::create);
         app.get("/api/tarjetas", tarjetaService::getAll);
         app.get("/api/tarjetas/{id}", tarjetaService::getById);

@@ -20,12 +20,52 @@ public class AuthService {
         this.emailService = emailService;
     }
 
+    /**
+     * REGISTRO DE USUARIO CON ENVÍO DE EMAIL
+     */
     public void register(Context ctx) {
         try {
             var body = ctx.bodyAsClass(Map.class);
 
+            // Validar campos requeridos
+            String nombreCompleto = (String) body.get("nombreCompleto");
             String email = (String) body.get("correoElectronico");
+            String contrasena = (String) body.get("contrasena");
+            String tipo = (String) body.get("tipo");
 
+            if (nombreCompleto == null || nombreCompleto.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "El nombre completo es requerido"
+                ));
+                return;
+            }
+
+            if (email == null || email.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "El correo electrónico es requerido"
+                ));
+                return;
+            }
+
+            if (contrasena == null || contrasena.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "La contraseña es requerida"
+                ));
+                return;
+            }
+
+            if (tipo == null || tipo.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "El tipo de usuario es requerido"
+                ));
+                return;
+            }
+
+            // Verificar si el email ya existe
             if (userRepository.existsByEmail(email)) {
                 ctx.status(400).json(Map.of(
                         "success", false,
@@ -34,19 +74,40 @@ public class AuthService {
                 return;
             }
 
-            User user = new User();
-            user.setNombreCompleto((String) body.get("nombreCompleto"));
-            user.setCorreoElectronico(email);
-            user.setTipo((String) body.get("tipo"));
-            user.setContrasena(BCrypt.hashpw((String) body.get("contrasena"), BCrypt.gensalt()));
+            // Guardar la contraseña en texto plano ANTES de encriptarla
+            String contrasenaTextoPlano = contrasena;
 
+            // Crear usuario
+            User user = new User();
+            user.setId(UUID.randomUUID().toString());
+            user.setNombreCompleto(nombreCompleto);
+            user.setCorreoElectronico(email);
+            user.setTipo(tipo);
+            user.setContrasena(BCrypt.hashpw(contrasena, BCrypt.gensalt()));
+
+            // Guardar en BD
             User saved = userRepository.save(user);
 
+            // 🔥 ENVIAR EMAIL DE BIENVENIDA CON CREDENCIALES
+            try {
+                emailService.sendWelcomeEmail(
+                        saved.getCorreoElectronico(),
+                        saved.getNombreCompleto(),
+                        contrasenaTextoPlano,  // Enviar contraseña en texto plano
+                        saved.getTipo()
+                );
+                System.out.println("✅ Email de bienvenida enviado a: " + saved.getCorreoElectronico());
+            } catch (Exception emailError) {
+                System.err.println("⚠️ Error al enviar email (pero usuario creado): " + emailError.getMessage());
+                // No fallar el registro si falla el email
+            }
+
+            // Generar token JWT
             String token = JwtConfig.generateToken(saved.getId(), saved.getCorreoElectronico());
 
             ctx.status(201).json(Map.of(
                     "success", true,
-                    "message", "Usuario registrado exitosamente",
+                    "message", "Usuario registrado exitosamente. Se ha enviado un email con las credenciales.",
                     "data", Map.of(
                             "token", token,
                             "userId", saved.getId(),
@@ -57,19 +118,40 @@ public class AuthService {
             ));
 
         } catch (Exception e) {
+            System.err.println("❌ Error en registro: " + e.getMessage());
+            e.printStackTrace();
             ctx.status(500).json(Map.of(
                     "success", false,
-                    "message", "Error interno del servidor"
+                    "message", "Error interno del servidor: " + e.getMessage()
             ));
         }
     }
 
+    /**
+     * LOGIN DE USUARIO
+     */
     public void login(Context ctx) {
         try {
             var body = ctx.bodyAsClass(Map.class);
 
             String email = (String) body.get("correoElectronico");
             String password = (String) body.get("contrasena");
+
+            if (email == null || email.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "El correo electrónico es requerido"
+                ));
+                return;
+            }
+
+            if (password == null || password.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "La contraseña es requerida"
+                ));
+                return;
+            }
 
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
@@ -98,6 +180,8 @@ public class AuthService {
                     "message", e.getMessage()
             ));
         } catch (Exception e) {
+            System.err.println("❌ Error en login: " + e.getMessage());
+            e.printStackTrace();
             ctx.status(500).json(Map.of(
                     "success", false,
                     "message", "Error interno del servidor"
@@ -105,10 +189,21 @@ public class AuthService {
         }
     }
 
+    /**
+     * SOLICITAR RECUPERACIÓN DE CONTRASEÑA
+     */
     public void requestPasswordReset(Context ctx) {
         try {
             var body = ctx.bodyAsClass(Map.class);
             String email = (String) body.get("correoElectronico");
+
+            if (email == null || email.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "El correo electrónico es requerido"
+                ));
+                return;
+            }
 
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
@@ -126,7 +221,15 @@ public class AuthService {
                     "message", "Email de recuperación enviado"
             ));
 
+        } catch (IllegalArgumentException e) {
+            // Por seguridad, siempre devolvemos éxito aunque el email no exista
+            ctx.json(Map.of(
+                    "success", true,
+                    "message", "Si el correo existe, recibirás un email de recuperación"
+            ));
         } catch (Exception e) {
+            System.err.println("❌ Error al solicitar reset: " + e.getMessage());
+            e.printStackTrace();
             ctx.status(500).json(Map.of(
                     "success", false,
                     "message", "Error al enviar email"
@@ -134,11 +237,30 @@ public class AuthService {
         }
     }
 
+    /**
+     * RESTABLECER CONTRASEÑA
+     */
     public void resetPassword(Context ctx) {
         try {
             var body = ctx.bodyAsClass(Map.class);
             String token = (String) body.get("token");
             String newPassword = (String) body.get("nuevaContrasena");
+
+            if (token == null || token.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "Token es requerido"
+                ));
+                return;
+            }
+
+            if (newPassword == null || newPassword.isEmpty()) {
+                ctx.status(400).json(Map.of(
+                        "success", false,
+                        "message", "Nueva contraseña es requerida"
+                ));
+                return;
+            }
 
             User user = userRepository.findByResetToken(token)
                     .orElseThrow(() -> new IllegalArgumentException("Token inválido"));
@@ -162,6 +284,8 @@ public class AuthService {
                     "message", e.getMessage()
             ));
         } catch (Exception e) {
+            System.err.println("❌ Error al resetear contraseña: " + e.getMessage());
+            e.printStackTrace();
             ctx.status(500).json(Map.of(
                     "success", false,
                     "message", "Error interno del servidor"
